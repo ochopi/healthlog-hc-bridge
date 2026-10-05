@@ -10,8 +10,10 @@ $RECYCLE.BIN/
 *.swp
 *.swo
 *~
+__pycache__/
 
 # ── Secretos y credenciales ───
+.env
 *.env
 .env*
 **/.env

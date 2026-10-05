@@ -1,8 +1,21 @@
+# Funciona igual desde la terminal (lee ./.env) y desde Portainer
+# (Stacks -> Repository, variables en "Environment variables").
 services:
   healthlog-hc-bridge:
     build: .
+    image: healthlog-hc-bridge:local
     container_name: healthlog-hc-bridge
     restart: unless-stopped
-    env_file: .env
+    environment:
+      HEALTHLOG_URL: ${HEALTHLOG_URL:?define HEALTHLOG_URL}
+      HEALTHLOG_MEASUREMENT_TOKEN: ${HEALTHLOG_MEASUREMENT_TOKEN:-}
+      HEALTHLOG_WORKOUT_TOKEN: ${HEALTHLOG_WORKOUT_TOKEN:-}
+      BRIDGE_KEY: ${BRIDGE_KEY:-}
+      RATE_PER_SEC: ${RATE_PER_SEC:-4}
+      DRY_RUN: ${DRY_RUN:-true}
+      LOG_PAYLOAD: ${LOG_PAYLOAD:-false}
+      DASH_USER: ${DASH_USER:-}
+      DASH_PASSWORD: ${DASH_PASSWORD:-}
+      TZ: ${TZ:-America/El_Salvador}
     ports:
-      - "8088:8088"
+      - "${HOST_PORT:-8088}:8088"

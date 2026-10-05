@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HC Bridge</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --text: #1a1d21; --muted: #6a7280; --line: #e3e6ea;
+    --ok: #1a7f4b; --warn: #a15c00; --bad: #c0392b; --info: #2457d6;
+    --ok-bg: #e4f4ea; --warn-bg: #fdf0d9; --bad-bg: #fbe5e2; --info-bg: #e5ecfb; --bar: #2457d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #101215; --card: #1a1d22; --text: #e8eaed; --muted: #959ba6; --line: #2a2e35;
+      --ok: #5fd08f; --warn: #f0b95a; --bad: #ff8a7a; --info: #8ab0ff;
+      --ok-bg: #16301f; --warn-bg: #352a12; --bad-bg: #3a1c18; --info-bg: #182646; --bar: #8ab0ff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 20px 16px 48px; }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 14px; margin-bottom: 18px; }
+  h1 { font-size: 20px; margin: 0; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+       margin: 26px 0 8px; font-weight: 600; }
+  .muted { color: var(--muted); }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .card .label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .card .big { font-size: 22px; font-weight: 650; }
+  .card .sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .pill { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); } .info { color: var(--info); }
+  .pill.ok { background: var(--ok-bg); } .pill.warn { background: var(--warn-bg); }
+  .pill.bad { background: var(--bad-bg); } .pill.info { background: var(--info-bg); }
+  .bar { height: 10px; background: var(--line); border-radius: 999px; overflow: hidden; margin: 10px 0 6px; }
+  .bar > div { height: 100%; background: var(--bar); width: 0; transition: width .6s; }
+  table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line);
+          border-radius: 12px; overflow: hidden; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 13.5px; }
+  th { font-size: 12px; color: var(--muted); font-weight: 600; }
+  tr:last-child td { border-bottom: 0; }
+  .chips span { display: inline-block; background: var(--bg); border: 1px solid var(--line); border-radius: 6px;
+                padding: 0 6px; margin: 1px 3px 1px 0; font-size: 12px; }
+  .events li { padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; list-style: none; }
+  .events { margin: 0; padding: 0 14px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+  .events li:last-child { border-bottom: 0; }
+  .scroll { overflow-x: auto; }
+  footer { margin-top: 28px; font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>HC Bridge</h1>
+    <span id="mode" class="pill info">…</span>
+    <span id="meta" class="muted"></span>
+  </header>
+
+  <div class="grid">
+    <div class="card"><div class="label">App del teléfono</div><div class="big" id="app-big">…</div><div class="sub" id="app-sub"></div></div>
+    <div class="card"><div class="label">HealthLog</div><div class="big" id="hl-big">…</div><div class="sub" id="hl-sub"></div></div>
+    <div class="card"><div class="label">Cola</div><div class="big" id="q-big">…</div><div class="sub" id="q-sub"></div></div>
+    <div class="card"><div class="label">Contenedor</div><div class="big" id="c-big">…</div><div class="sub" id="c-sub"></div></div>
+  </div>
+
+  <div id="progress" class="card" style="margin-top:12px; display:none">
+    <div class="label">Sincronización en curso</div>
+    <div class="bar"><div id="bar"></div></div>
+    <div class="sub" id="progress-text"></div>
+  </div>
+
+  <h2>Totales desde el último arranque</h2>
+  <div class="grid" id="totals"></div>
+
+  <h2>Últimas sincronizaciones</h2>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>#</th><th>Recibido</th><th>Estado</th><th>Registros</th><th>Resultado</th><th>Duración</th></tr></thead>
+      <tbody id="jobs"><tr><td colspan="6" class="muted">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+
+  <h2>Avisos y errores recientes</h2>
+  <ul class="events" id="events"><li class="muted">Cargando…</li></ul>
+
+  <footer>Solo se muestran contadores, nunca valores de salud. Se actualiza cada 3 s.
+    El historial vive en memoria y se borra al reiniciar el contenedor.</footer>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+function el(tag, props, ...kids) {
+  const e = document.createElement(tag);
+  if (props) for (const [k, v] of Object.entries(props)) { if (k === "class") e.className = v; else e[k] = v; }
+  for (const k of kids) e.append(k);
+  return e;
+}
+function pill(text, cls) { return el("span", { class: "pill " + cls, textContent: text }); }
+function ago(s) {
+  if (s == null) return "nunca";
+  if (s < 90) return "hace " + s + " s";
+  if (s < 5400) return "hace " + Math.round(s / 60) + " min";
+  if (s < 172800) return "hace " + Math.round(s / 3600) + " h";
+  return "hace " + Math.round(s / 86400) + " d";
+}
+function dur(s) {
+  if (s == null) return "";
+  if (s < 90) return s + " s";
+  if (s < 5400) return Math.round(s / 60) + " min";
+  return (s / 3600).toFixed(1) + " h";
+}
+function local(iso) {
+  if (!iso) return "";
+  return new Date(iso).toLocaleString("es-SV", { dateStyle: "short", timeStyle: "medium" });
+}
+function nf(n) { return Number(n).toLocaleString("es-SV"); }
+function fill(node, ...kids) { node.replaceChildren(...kids); }
+
+function render(d) {
+  // header
+  fill($("mode"), document.createTextNode(d.dry_run ? "MODO PRUEBA (no envía)" : "EN VIVO"));
+  $("mode").className = "pill " + (d.dry_run ? "warn" : "ok");
+  $("meta").textContent = "v" + d.version;
+
+  // app
+  const age = d.app.last_contact_age_s;
+  const appCls = age == null ? "bad" : age > 86400 ? "warn" : "ok";
+  fill($("app-big"), pill(age == null ? "Sin contacto" : ago(age), appCls));
+  $("app-sub").textContent = d.app.last_contact_at ? "Último envío: " + local(d.app.last_contact_at) : "La app aún no ha enviado nada";
+
+  // healthlog
+  const hl = d.healthlog;
+  const hlOk = hl.reachable && hl.token_ok !== false;
+  fill($("hl-big"), pill(!hl.reachable ? "Sin respuesta" : hl.token_ok === false ? "Token rechazado" : "Conectado",
+                          hlOk ? "ok" : "bad"));
+  $("hl-sub").textContent = hl.host + (hl.latency_ms != null ? " · " + hl.latency_ms + " ms" : "") +
+    (hl.last_write_ok_at ? " · última escritura " + local(hl.last_write_ok_at) : "") +
+    (hl.workout_token ? "" : " · sin token de workouts");
+
+  // queue
+  const q = d.queue, c = q.current;
+  fill($("q-big"), pill(c ? "Trabajando" : q.jobs_waiting ? "En espera" : "Libre", c ? "info" : q.jobs_waiting ? "warn" : "ok"));
+  $("q-sub").textContent = q.jobs_waiting + " envíos esperando";
+
+  // container
+  $("c-big").textContent = dur(d.uptime_s);
+  $("c-sub").textContent = "encendido" + (d.memory_mb != null ? " · " + d.memory_mb + " MB RAM" : "") + " · límite " + d.rate_limit_per_s + "/s";
+
+  // progress
+  const p = $("progress");
+  if (c) {
+    p.style.display = "";
+    $("bar").style.width = (c.total ? (100 * c.done / c.total) : 0) + "%";
+    $("progress-text").textContent = nf(c.done) + " de " + nf(c.total) + " registros · " + c.rate_per_s + "/s" +
+      (c.eta_s != null ? " · faltan ~" + dur(c.eta_s) : "");
+  } else p.style.display = "none";
+
+  // totals
+  const t = d.totals;
+  const items = [["Enviados", t.sent, "ok"], ["Duplicados (ya estaban)", t.duplicate, ""],
+                 ["Omitidos (HealthLog los rechazó)", t.skipped, t.skipped ? "warn" : ""],
+                 ["Fallidos", t.failed, t.failed ? "bad" : ""], ["Envíos de la app", t.received_jobs, ""]];
+  fill($("totals"), ...items.map(([l, v, cls]) =>
+    el("div", { class: "card" }, el("div", { class: "label", textContent: l }), el("div", { class: "big " + cls, textContent: nf(v) }))));
+
+  // jobs
+  const rows = d.recent_jobs.map((j) => {
+    const chips = el("div", { class: "chips" });
+    for (const [k, v] of Object.entries(j.counts || {})) chips.append(el("span", { textContent: k + " " + nf(v) }));
+    const st = j.status === "done" ? pill("listo", "ok") : j.status === "running" ? pill("en curso", "info")
+             : j.status === "queued" ? pill("en cola", "warn") : pill(j.status, "bad");
+    const r = j.result ? [j.result.sent + " nuevos", j.result.duplicate + " dup.",
+                          j.result.skipped ? j.result.skipped + " omitidos" : "", j.result.failed ? j.result.failed + " fallidos" : ""]
+                         .filter(Boolean).join(" · ") : "";
+    return el("tr", null, el("td", { textContent: j.id }), el("td", { textContent: local(j.received_at) }),
+              el("td", null, st), el("td", null, chips), el("td", { textContent: r }), el("td", { textContent: dur(j.seconds) }));
+  });
+  fill($("jobs"), ...(rows.length ? rows : [el("tr", null, el("td", { colSpan: 6, class: "muted", textContent: "Aún no hay sincronizaciones." }))]));
+
+  // events
+  const ev = d.recent_events.map((e) =>
+    el("li", null, pill(e.level === "ERROR" ? "error" : "aviso", e.level === "ERROR" ? "bad" : "warn"),
+       " ", el("span", { class: "muted", textContent: local(e.at) + " " }), document.createTextNode(e.msg)));
+  fill($("events"), ...(ev.length ? ev : [el("li", { class: "muted", textContent: "Sin avisos. Todo en orden." })]));
+}
+
+async function tick() {
+  try {
+    const r = await fetch("status.json", { headers: { Accept: "application/json" }, cache: "no-store" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    render(await r.json());
+  } catch (e) {
+    fill($("mode"), document.createTextNode("Sin conexión con el bridge"));
+    $("mode").className = "pill bad";
+  }
+}
+tick();
+setInterval(tick, 3000);
+</script>
+</body>
+</html>
