@@ -1,0 +1,8 @@
+services:
+  healthlog-hc-bridge:
+    build: .
+    container_name: healthlog-hc-bridge
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8088:8088"

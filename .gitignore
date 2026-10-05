@@ -1,0 +1,47 @@
+# ── Sistema operativo ───
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ── Editores y IDEs ───
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Secretos y credenciales ───
+*.env
+.env*
+**/.env
+*.secret
+secrets.*
+*password*
+*passwd*
+*token*
+*apikey*
+*api_key*
+id_rsa
+id_ed25519
+*.pem
+*.key
+*.p12
+
+# ── Backups y archivos temporales ───
+*.bak
+*.tmp
+*.log
+*.orig
+
+# ── Archivos comprimidos ───
+*.tar
+*.tar.gz
+*.zip
+*.gz
+*.sql.gz
+
+# ── Carpetas de datos sensibles ───
+secrets/
+private/
+credentials/
